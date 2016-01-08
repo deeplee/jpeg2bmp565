@@ -3,9 +3,9 @@
 *
 *       Filename:  tobmp.cpp
 *    Description: jpg 2 16-565 bmp
-*        Version:  1.0
+*        Version:  1.0.1
 *        Created:  2015-05-08 14:01:38
-*         Author:  Deep Lee ,
+*         Author:  Deep Lee
 * =====================================================================================
 */
 #include <stdlib.h>
@@ -96,7 +96,7 @@ namespace Lee
             headersize=14+40+16;
             filesize=headersize+width*height*depth*2/3;
         }
-#if 1
+
         memset(&bfh, 0, sizeof(struct bmp_fileheader));
         memset(&bih, 0, sizeof(struct bmp_infoheader));
         memset(&brm, 0, sizeof(struct bmp_rgbmask));
@@ -127,8 +127,7 @@ namespace Lee
         fwrite(&brm, sizeof(struct bmp_rgbmask), 1, output_file);
         fwrite(&brq, sizeof(struct bmp_RGBQUAD), 1, output_file);
 
-#endif
-        printf("filesize:%d\nwidth:%d\nheight%d\n", filesize, width, height);
+        // printf("filesize:%d\nwidth:%d\nheight%d\n", filesize, width, height);
 
         if (depth==1)        //灰度图像要添加调色板
         {
@@ -174,7 +173,6 @@ namespace Lee
         r5g6b5 = new unsigned char[width * 2];
         memset(r5g6b5, 0, sizeof(unsigned char)*width * 2);
 
-#if 1
         point=src_buff+width*depth*(height-1);    //倒着写数据，bmp格式是倒的，jpg是正的
 
         for (unsigned long i=0;i<height;i++)
@@ -192,40 +190,21 @@ namespace Lee
                     dst_width_buff[j+2]=point[j+0];
                     dst_width_buff[j+1]=point[j+1];
                     dst_width_buff[j+0]=point[j+2];
-#if 1
+
                     writebuff = ((dst_width_buff[j+2] << 8) & 0xF800)  |
                                 ((dst_width_buff[j+1] << 3) & 0x07E0)  |
                                 ((dst_width_buff[j+0] >> 3) & 0X1F);
-                    printf("%0x, %0x, %0x\n", dst_width_buff[j+2], dst_width_buff[j+1], dst_width_buff[j+0]);
-                    printf("%0x\n", writebuff);
+                    // printf("%0x, %0x, %0x\n", dst_width_buff[j+2], dst_width_buff[j+1], dst_width_buff[j+0]);
+                    // printf("%0x\n", writebuff);
                     r5g6b5[count + 1] = (writebuff & 0xFF00) >> 8;
                     r5g6b5[count + 0] = (writebuff & 0x00FF);
-                    printf("%0x%0x\n", r5g6b5[count], r5g6b5[count+1]);
-#endif
+                    // printf("%0x%0x\n", r5g6b5[count], r5g6b5[count+1]);
                 }
             }
             point -= width*depth;
             fwrite(r5g6b5, sizeof(unsigned char)*width*2, 1, output_file);    //一次写一行
 //            fwrite(dst_width_buff, sizeof(unsigned char)*width*depth, 1, output_file);    //一次写一行
         }
-#else
-    if (widthAlignBytes == width * 2)
-    {
-        fwrite(src_buff, sizeof(unsigned char), (size_t)datasize, output_file);
-    }
-    else
-    {
-        // 每一行单独写入
-        const static int NUMZERO = 0;
-        for (int i = 0; i < height; i++)
-        {
-            fwrite(src_buff + i * width * 2, sizeof(unsigned char),
-                (size_t) width * 2, output_file);
-            fwrite(&NUMZERO, sizeof(unsigned char),
-                widthAlignBytes - width * 2, output_file);
-        }
-    }
-#endif
         delete[]dst_width_buff;
     }
 
